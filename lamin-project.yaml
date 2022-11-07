@@ -1,0 +1,5 @@
+project_name: lndb-storage
+description: Manage LaminDB storage interactions
+project_slug: lndb-storage
+repository_name: lndb-storage
+package_name: lndb_storage
