@@ -8,11 +8,16 @@ authors = [{name = "Lamin Labs", email = "laminlabs@gmail.com"}]
 readme = "README.md"
 dynamic = ["version", "description"]
 dependencies = [
+    "lndb_setup",
     "nbproject",
+    "readfcs",
+    "anndata",
     "fsspec",
     "s3fs",
     "gcsfs",
-    "zarr"
+    "zarr",
+    "scipy",
+    "pandas",
 ]
 
 [project.urls]
