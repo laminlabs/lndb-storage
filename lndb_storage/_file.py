@@ -3,9 +3,11 @@ from pathlib import Path
 from typing import Union
 
 import fsspec
+import nbproject
 import pandas as pd
 import readfcs
-from lndb_setup import settings
+from lndb import settings
+from lndb.dev import UPath
 
 from ._h5ad import read_adata_h5ad
 from ._zarr import read_adata_zarr
@@ -18,15 +20,14 @@ READER_FUNCS = {
     ".zarr": read_adata_zarr,
 }
 
-fsspec_filesystem = None
-
 
 def print_hook(size, value, **kwargs):
     progress = value / size
-    out = f"Writing {kwargs['filepath']}: {min(progress, 1.):4.2f}"
+    out = f"Uploading {kwargs['filepath']}: {min(progress, 1.):4.2f}"
     if progress >= 1:
         out += "\n"
-    print(out, end="\r")
+    if nbproject.meta.env != "test":
+        print(out, end="\r")
 
 
 class ProgressCallback(fsspec.callbacks.Callback):
@@ -39,41 +40,54 @@ class ProgressCallback(fsspec.callbacks.Callback):
         return None
 
 
-def store_file(localfile: Union[str, Path], storagekey: str) -> float:
-    """Store arbitrary file.
+def store_object(localpath: Union[str, Path], storagekey: str) -> float:
+    """Store arbitrary file to configured storage location.
 
     Returns size in bytes.
     """
-    storage = settings.instance.storage
-    storagepath = storage.key_to_filepath(storagekey)
+    storagepath = settings.instance.storage.key_to_filepath(storagekey)
+    localpath = Path(localpath)
 
-    global fsspec_filesystem
-
-    if storage.type != "local":
-        if fsspec_filesystem is None:
-            fsspec_filesystem = fsspec.filesystem(storage.type)
-        fsspec_filesystem.put(
-            str(localfile),
-            str(storagepath),
-            recursive=True,
-            callback=ProgressCallback(),
-        )
+    if localpath.is_file():
+        size = localpath.stat().st_size
     else:
-        try:
-            shutil.copyfile(localfile, storagepath)
-        except shutil.SameFileError:
-            pass
-    size = Path(localfile).stat().st_size
+        size = sum(f.stat().st_size for f in localpath.rglob("*") if f.is_file())
+
+    if isinstance(storagepath, UPath):
+        if localpath.suffix != ".zarr":
+            cb = ProgressCallback()
+        else:
+            # todo: make proper progress bar for zarr
+            cb = fsspec.callbacks.NoOpCallback()
+        storagepath.upload_from(localpath, recursive=True, callback=cb)
+    else:
+        if localpath.is_file():
+            try:
+                shutil.copyfile(localpath, storagepath)
+            except shutil.SameFileError:
+                pass
+        else:
+            if storagepath.exists():
+                shutil.rmtree(storagepath)
+            shutil.copytree(localpath, storagepath)
     return float(size)  # because this is how we store in the db
 
 
-def delete_file(storagekey: str):
+def delete_storage(storagekey: str):
     """Delete arbitrary file."""
     storagepath = settings.instance.storage.key_to_filepath(storagekey)
-    storagepath.unlink()
+    if storagepath.is_file():
+        storagepath.unlink()
+    elif storagepath.is_dir():
+        if isinstance(storagepath, UPath):
+            storagepath.rmdir()
+        else:
+            shutil.rmtree(storagepath)
+    else:
+        raise FileNotFoundError(f"{storagepath} is not an existing path!")
 
 
-def load_to_memory(filepath: Union[str, Path], stream: bool = False):
+def load_to_memory(filepath: Union[str, Path, UPath], stream: bool = False):
     """Load a file into memory.
 
     Returns the filepath if no in-memory form is found.
@@ -87,8 +101,9 @@ def load_to_memory(filepath: Union[str, Path], stream: bool = False):
         stream = False
 
     if not stream:
-        # caching happens here if filename is a CloudPath
-        filepath = Path(filepath)
+        # caching happens here if filename is a UPath
+        # todo: make it safe when filepath is just Path
+        filepath = settings.instance.storage.cloud_to_local(filepath)
 
     reader = READER_FUNCS.get(filepath.suffix)
     if reader is None:

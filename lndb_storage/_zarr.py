@@ -1,32 +1,31 @@
 import warnings
-from functools import partial
 from typing import Optional
 
-import fsspec
 import scipy.sparse as sparse
 import zarr
 from anndata import AnnData
 from anndata._io import read_zarr
 from anndata._io.specs import write_elem
-from lndb_setup import settings
 
 from ._anndata_sizes import _size_elem, _size_raw, size_adata
-from ._file import print_hook
+from ._filesystem import _infer_filesystem
 
 
-def read_adata_zarr(storagepath) -> AnnData:
-    if not isinstance(storagepath, str):
-        storagepath = str(storagepath)
-    store = fsspec.get_mapper(storagepath, check=True)
+def read_adata_zarr(storepath) -> AnnData:
+    fs, storepath = _infer_filesystem(storepath)
+
+    store = fs.get_mapper(storepath, check=True)
     adata = read_zarr(store)
 
     return adata
 
 
 def write_adata_zarr(
-    adata: AnnData, storagepath: str, callback=None, chunks=None, **dataset_kwargs
+    adata: AnnData, storepath, callback=None, chunks=None, **dataset_kwargs
 ):
-    store = fsspec.get_mapper(storagepath, create=True)
+    fs, storepath = _infer_filesystem(storepath)
+
+    store = fs.get_mapper(storepath, create=True)
     f = zarr.open(store, mode="w")
 
     adata.strings_to_categoricals()
@@ -86,14 +85,3 @@ def write_adata_zarr(
         _write_elem_cb(f, "raw", adata.raw, dataset_kwargs=dataset_kwargs)
     # todo: fix size less than total at the end
     _cb(None)
-
-    return adata_size
-
-
-def stream_zarr(adata: AnnData, storagekey: str, name: str):
-    storagepath = settings.instance.storage.key_to_filepath(storagekey)
-    print_progress = partial(print_hook, filepath=name)
-
-    size = write_adata_zarr(adata, str(storagepath), callback=print_progress)
-
-    return size
