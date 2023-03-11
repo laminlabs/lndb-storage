@@ -9,6 +9,7 @@ readme = "README.md"
 dynamic = ["version", "description"]
 dependencies = [
     "lndb",
+    "lnschema_core",
     "nbproject",
     "readfcs",
     "python-dateutil",
@@ -20,6 +21,7 @@ dependencies = [
     "zarr",
     "scipy",
     "pandas",
+    "typeguard"
 ]
 
 [project.urls]

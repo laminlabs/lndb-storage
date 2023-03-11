@@ -7,8 +7,8 @@ from anndata import AnnData
 from anndata._io import read_zarr
 from anndata._io.specs import write_elem
 
-from ._anndata_sizes import _size_elem, _size_raw, size_adata
 from ._filesystem import _infer_filesystem
+from .object._anndata_sizes import _size_elem, _size_raw, size_adata
 
 
 def read_adata_zarr(storepath) -> AnnData:
