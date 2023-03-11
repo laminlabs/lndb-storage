@@ -1,18 +1,27 @@
-"""Manage LaminDB storage interactions.
+"""Storage → object.
 
-Import the package::
-
-   import lndb_storage
-
-This is the complete API reference:
+File → memory:
 
 .. autosummary::
    :toctree: .
 
-   example_function
-   ExampleClass
+   h5ad_to_anndata
+
+Store files:
+
+.. autosummary::
+   :toctree: .
+
+   store_object
+   store_png
+   delete_storage
 """
 
-__version__ = "0.0.1"  # denote a pre-release for 0.1.0 with 0.1a1
+__version__ = "0.1.0"  # denote a release candidate for 0.1.0 with 0.1rc1
 
-from ._core import ExampleClass, example_function  # noqa
+from ._file import delete_storage, load_to_memory, store_object
+from ._filesystem import _infer_filesystem
+from ._h5ad import h5ad_to_anndata
+from ._images import store_png
+from ._upath_ext import UPath
+from ._zarr import read_adata_zarr, write_adata_zarr
