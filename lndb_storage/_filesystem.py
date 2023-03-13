@@ -2,7 +2,8 @@ from pathlib import Path
 from typing import Union
 
 import fsspec
-from lndb.dev import UPath
+
+from ._upath_ext import UPath
 
 
 def _infer_filesystem(path: Union[Path, UPath, str]):
