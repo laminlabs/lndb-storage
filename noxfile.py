@@ -13,6 +13,7 @@ def lint(session: nox.Session) -> None:
 @nox.session(python=["3.7", "3.8", "3.9", "3.10", "3.11"])
 def build(session):
     login_testuser1(session)
+    session.install(".[dev,test]")
     run_pytest(session)
     build_docs(session)
     upload_docs_dir()
