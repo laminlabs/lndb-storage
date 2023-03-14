@@ -7,9 +7,9 @@ import nbproject
 import pandas as pd
 import readfcs
 from lndb import settings
-from lndb.dev import UPath
 
 from ._h5ad import read_adata_h5ad
+from ._upath_ext import UPath
 from ._zarr import read_adata_zarr
 
 READER_FUNCS = {
