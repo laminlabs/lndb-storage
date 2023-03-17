@@ -35,7 +35,7 @@ dev = [
 test = [
     "pytest>=6.0",
     "pytest-cov",
-    "lamindb",
+    "lamindb@git+https://github.com/laminlabs/lamindb",
     "scanpy"
 ]
 
