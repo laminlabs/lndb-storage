@@ -3,13 +3,14 @@ from pathlib import Path
 
 from anndata import AnnData
 from lamin_logger import logger
-from lndb import settings
 from typeguard import typechecked
 
 
 @typechecked
 def anndata_to_h5ad(adata: AnnData, filekey: str) -> Path:
     """AnnData → h5ad."""
+    from lndb import settings
+
     path = settings.instance.storage.key_to_filepath(filekey)
     if settings.instance.storage.is_cloud:
         cache_file = settings.instance.storage.cloud_to_local_no_update(path)  # type: ignore  # noqa
