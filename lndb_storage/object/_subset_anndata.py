@@ -5,8 +5,8 @@ import zarr
 from anndata import AnnData
 from anndata._io.specs.methods import _read_partial
 from anndata._io.specs.registry import read_elem, read_elem_partial
-from lnschema_core import DObject
-from lnschema_core.dev._storage import filepath_from_dobject
+from lnschema_core import File
+from lnschema_core.dev._storage import filepath_from_file
 
 from .._filesystem import _infer_filesystem
 from ._lazy_field import LazySelector
@@ -76,22 +76,22 @@ def _subset_adata_storage(
         return AnnData(**prepare_adata)
 
 
-def _subset_anndata_dobject(
-    dobject: DObject,
+def _subset_anndata_file(
+    file: File,
     query_obs: Optional[Union[str, LazySelector]] = None,
     query_var: Optional[Union[str, LazySelector]] = None,
 ) -> Union[AnnData, None]:
-    dobject_path = filepath_from_dobject(dobject)
-    fs, dobject_path_str = _infer_filesystem(dobject_path)
+    file_path = filepath_from_file(file)
+    fs, file_path_str = _infer_filesystem(file_path)
 
     adata: Union[AnnData, None] = None
 
-    if dobject.suffix == ".h5ad":
-        with fs.open(dobject_path_str, mode="rb") as file:
+    if file.suffix == ".h5ad":
+        with fs.open(file_path_str, mode="rb") as file:
             storage = h5py.File(file, mode="r")
             adata = _subset_adata_storage(storage, query_obs, query_var)
-    elif dobject.suffix == ".zarr":
-        mapper = fs.get_mapper(dobject_path_str, check=True)
+    elif file.suffix == ".zarr":
+        mapper = fs.get_mapper(file_path_str, check=True)
         storage = zarr.open(mapper, mode="r")
         adata = _subset_adata_storage(storage, query_obs, query_var)
 
