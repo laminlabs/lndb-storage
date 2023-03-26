@@ -3,6 +3,7 @@
 <!-- prettier-ignore -->
 Name | PR | Developer | Date | Version
 --- | --- | --- | --- | ---
+➕ Add upath to deps | [9](https://github.com/laminlabs/lndb-storage/pull/9) | [Koncopd](https://github.com/Koncopd) | 2023-03-26 |
 ➖ Remove lndb as explicit dependency | [7](https://github.com/laminlabs/lndb-storage/pull/7) | [Koncopd](https://github.com/Koncopd) | 2023-03-26 | 0.2rc1
 🚚 Rename `DObject` to `File` | [8](https://github.com/laminlabs/lndb-storage/pull/8) | [falexwolf](https://github.com/falexwolf) | 2023-03-24 |
 ✅ Test streaming here | [6](https://github.com/laminlabs/lndb-storage/pull/6) | [Koncopd](https://github.com/Koncopd) | 2023-03-17 |
