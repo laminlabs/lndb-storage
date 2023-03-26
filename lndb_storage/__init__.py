@@ -17,7 +17,7 @@ Store files:
    delete_storage
 """
 
-__version__ = "0.1.1"  # denote a release candidate for 0.1.0 with 0.1rc1
+__version__ = "0.2rc1"  # denote a release candidate for 0.1.0 with 0.1rc1
 
 from ._file import delete_storage, load_to_memory, store_object
 from ._filesystem import _infer_filesystem
