@@ -1,7 +1,3 @@
-# lndb-storage: Manage LaminDB storage interactions
+# lndb-storage: LaminDB storage
 
-This package is in private beta at this moment!
-
-Follow https://twitter.com/laminlabs to learn about a first public release.
-
-For beta users: Read the [docs](https://lamin.ai/docs/lndb-storage).
+Latest developer docs: [netlify](https://lndb-storage-soie.netlify.app/docs/lndb-storage/)
