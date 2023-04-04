@@ -12,4 +12,5 @@ This makes it both easy for the user to understand the documentation, and for th
 quickstart
 storage
 stream
+add-replace-stage
 ```
