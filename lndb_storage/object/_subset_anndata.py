@@ -5,10 +5,10 @@ import zarr
 from anndata import AnnData
 from anndata._io.specs.methods import _read_partial
 from anndata._io.specs.registry import read_elem, read_elem_partial
+from lndb.dev.upath import infer_filesystem as _infer_filesystem
 from lnschema_core import File
 from lnschema_core.dev._storage import filepath_from_file
 
-from .._filesystem import _infer_filesystem
 from ._lazy_field import LazySelector
 
 
