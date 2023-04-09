@@ -3,6 +3,7 @@
 <!-- prettier-ignore -->
 Name | PR | Developer | Date | Version
 --- | --- | --- | --- | ---
+💚 Attempt fix CI | [12](https://github.com/laminlabs/lndb-storage/pull/12) | [falexwolf](https://github.com/falexwolf) | 2023-04-09 |
 🚚 Move `UPath` back to `lndb` | [11](https://github.com/laminlabs/lndb-storage/pull/11) | [falexwolf](https://github.com/falexwolf) | 2023-04-08 |
 ✅ Add test for replace and stage | [10](https://github.com/laminlabs/lndb-storage/pull/10) | [Koncopd](https://github.com/Koncopd) | 2023-04-04 |
 ➕ Add upath to deps | [9](https://github.com/laminlabs/lndb-storage/pull/9) | [Koncopd](https://github.com/Koncopd) | 2023-03-26 | 0.2rc2
