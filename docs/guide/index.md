@@ -4,7 +4,7 @@
 :maxdepth: 1
 
 serialize-cache
-stream
 upload
+stream
 add-replace-stage
 ```
