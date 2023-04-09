@@ -5,5 +5,6 @@
 
 storage
 stream
+upload
 add-replace-stage
 ```
