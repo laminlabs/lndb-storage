@@ -36,7 +36,8 @@ dev = [
 test = [
     "pytest>=6.0",
     "pytest-cov",
-    "scanpy"
+    "scanpy",
+    "lndb>=0.41rc1",
 ]
 
 [tool.black]
