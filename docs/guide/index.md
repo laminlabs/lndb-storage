@@ -3,7 +3,7 @@
 ```{toctree}
 :maxdepth: 1
 
-storage
+serialize-cache
 stream
 upload
 add-replace-stage
