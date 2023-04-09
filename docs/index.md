@@ -19,9 +19,6 @@ The organization roughly follows [diataxis](https://diataxis.fr/), calling what 
 :hidden:
 
 guide/index
-api
-faq/index
-notes/index
-examples/index
+reference
 changelog
 ```

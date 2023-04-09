@@ -1,7 +1,6 @@
 import anndata
 from anndata import AnnData
-
-from ._filesystem import _infer_filesystem
+from lndb.dev.upath import infer_filesystem
 
 
 def h5ad_to_anndata(filekey) -> AnnData:
@@ -12,7 +11,7 @@ def h5ad_to_anndata(filekey) -> AnnData:
 
 
 def read_adata_h5ad(filepath, **kwargs) -> AnnData:
-    fs, filepath = _infer_filesystem(filepath)
+    fs, filepath = infer_filesystem(filepath)
 
     with fs.open(filepath, mode="rb") as file:
         adata = anndata.read_h5ad(file, backed=False, **kwargs)

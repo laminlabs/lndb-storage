@@ -6,13 +6,13 @@ import zarr
 from anndata import AnnData
 from anndata._io import read_zarr
 from anndata._io.specs import write_elem
+from lndb.dev.upath import infer_filesystem
 
-from ._filesystem import _infer_filesystem
 from .object._anndata_sizes import _size_elem, _size_raw, size_adata
 
 
 def read_adata_zarr(storepath) -> AnnData:
-    fs, storepath = _infer_filesystem(storepath)
+    fs, storepath = infer_filesystem(storepath)
 
     store = fs.get_mapper(storepath, check=True)
     adata = read_zarr(store)
@@ -23,7 +23,7 @@ def read_adata_zarr(storepath) -> AnnData:
 def write_adata_zarr(
     adata: AnnData, storepath, callback=None, chunks=None, **dataset_kwargs
 ):
-    fs, storepath = _infer_filesystem(storepath)
+    fs, storepath = infer_filesystem(storepath)
 
     store = fs.get_mapper(storepath, create=True)
     f = zarr.open(store, mode="w")

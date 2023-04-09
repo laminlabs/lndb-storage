@@ -9,6 +9,7 @@ readme = "README.md"
 dynamic = ["version", "description"]
 dependencies = [
     "lnschema_core",
+    "lamin_logger>=0.3.0",
     "nbproject",
     "readfcs",
     "python-dateutil",
@@ -36,7 +37,8 @@ dev = [
 test = [
     "pytest>=6.0",
     "pytest-cov",
-    "scanpy"
+    "scanpy",
+    "lndb>=0.41rc1",
 ]
 
 [tool.black]
