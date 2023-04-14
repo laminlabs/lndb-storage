@@ -1,9 +1,9 @@
+import os
 import shutil
 from pathlib import Path
 from typing import Union
 
 import fsspec
-import nbproject
 import pandas as pd
 import readfcs
 from lndb.dev.upath import UPath
@@ -22,10 +22,10 @@ READER_FUNCS = {
 
 def print_hook(size, value, **kwargs):
     progress = value / size
-    out = f"Uploading {kwargs['filepath']}: {min(progress, 1.):4.2f}"
+    out = f"... uploading {Path(kwargs['filepath']).name}: {min(progress, 1.):4.2f}"
     if progress >= 1:
         out += "\n"
-    if nbproject.meta.env != "test":
+    if "NBPRJ_TEST_NBPATH" not in os.environ:
         print(out, end="\r")
 
 
