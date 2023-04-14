@@ -21,7 +21,7 @@ READER_FUNCS = {
 
 def print_hook(size, value, **kwargs):
     progress = value / size
-    out = f"... uploading {Path(kwargs['filepath']).filename}: {min(progress, 1.):4.2f}"
+    out = f"... uploading {Path(kwargs['filepath']).name}: {min(progress, 1.):4.2f}"
     if progress >= 1:
         out += "\n"
     print(out, end="\r")
