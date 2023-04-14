@@ -1,3 +1,4 @@
+import os
 import shutil
 from pathlib import Path
 from typing import Union
@@ -24,7 +25,8 @@ def print_hook(size, value, **kwargs):
     out = f"... uploading {Path(kwargs['filepath']).name}: {min(progress, 1.):4.2f}"
     if progress >= 1:
         out += "\n"
-    print(out, end="\r")
+    if "NBPRJ_TEST_NBPATH" not in os.environ:
+        print(out, end="\r")
 
 
 class ProgressCallback(fsspec.callbacks.Callback):
