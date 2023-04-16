@@ -3,6 +3,7 @@
 <!-- prettier-ignore -->
 Name | PR | Developer | Date | Version
 --- | --- | --- | --- | ---
+♻️ Refactoring | [19](https://github.com/laminlabs/lndb-storage/pull/19) | [Koncopd](https://github.com/Koncopd) | 2023-04-16 |
 ♻️ Remove call to nbproject in progress bar | [18](https://github.com/laminlabs/lndb-storage/pull/18) | [falexwolf](https://github.com/falexwolf) | 2023-04-14 | 0.2rc4
 ✅ Introduce separate upload guide | [14](https://github.com/laminlabs/lndb-storage/pull/14) | [falexwolf](https://github.com/falexwolf) | 2023-04-09 | 0.2rc3
 💚 Attempt fix CI | [12](https://github.com/laminlabs/lndb-storage/pull/12) | [falexwolf](https://github.com/falexwolf) | 2023-04-09 |
