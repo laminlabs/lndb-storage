@@ -9,6 +9,7 @@ readme = "README.md"
 dynamic = ["version", "description"]
 dependencies = [
     "lnschema_core",
+    "lndb>=0.41.0",
     "lamin_logger>=0.3.0",
     "nbproject",
     "readfcs",

@@ -6,6 +6,7 @@ from typing import Union
 import fsspec
 import pandas as pd
 import readfcs
+from lndb import settings
 from lndb.dev.upath import UPath
 
 from ._h5ad import read_adata_h5ad
@@ -44,8 +45,6 @@ def store_object(localpath: Union[str, Path], storagekey: str) -> float:
 
     Returns size in bytes.
     """
-    from lndb import settings
-
     storagepath = settings.instance.storage.key_to_filepath(storagekey)
     localpath = Path(localpath)
 
@@ -76,8 +75,6 @@ def store_object(localpath: Union[str, Path], storagekey: str) -> float:
 
 def delete_storage(storagekey: str):
     """Delete arbitrary file."""
-    from lndb import settings
-
     storagepath = settings.instance.storage.key_to_filepath(storagekey)
     if storagepath.is_file():
         storagepath.unlink()
@@ -95,8 +92,6 @@ def load_to_memory(filepath: Union[str, Path, UPath], stream: bool = False):
 
     Returns the filepath if no in-memory form is found.
     """
-    from lndb import settings
-
     if isinstance(filepath, str):
         filepath = Path(filepath)
 
