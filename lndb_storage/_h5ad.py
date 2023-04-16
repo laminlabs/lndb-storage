@@ -1,12 +1,11 @@
 import anndata
 from anndata import AnnData
+from lndb import settings
 from lndb.dev.upath import infer_filesystem
 
 
 def h5ad_to_anndata(filekey) -> AnnData:
     """h5ad → AnnData."""
-    from lndb import settings
-
     return anndata.read(settings.instance.storage.local_filepath(filekey))
 
 
