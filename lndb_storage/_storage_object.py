@@ -5,7 +5,7 @@ from typing import Union
 from lndb import settings
 from lndb.dev.upath import UPath
 
-from .._file import ProgressCallback
+from ._file import ProgressCallback
 
 
 class StorageObject:
