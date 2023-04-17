@@ -17,12 +17,14 @@ class StorageObject:
         self.storage_path = settings.storage.key_to_filepath(storagekey)
         self.is_remote = isinstance(self.storage_path, UPath)
 
+        self.is_cached = False
         self.local_path: Path = localpath  # type: ignore
         if self.local_path is None:
             if self.is_remote:
                 self.local_path = settings.storage.cloud_to_local_no_update(
                     self.storage_path
                 )
+                self.is_cached = True
         else:
             self.local_path = Path(self.local_path)
 
@@ -62,7 +64,7 @@ class StorageObject:
 def _delete_file(obj: StorageObject):
     if obj.storage_path.exists():
         obj.storage_path.unlink()
-    if obj.local_path.exists():
+    if obj.is_cached and obj.local_path.exists():
         obj.local_path.unlink()
 
 
@@ -73,7 +75,7 @@ StorageObject.delete_registry[(True, "file")] = _delete_file
 def _delete_local_dir(obj: StorageObject):
     if obj.storage_path.exists():
         shutil.rmtree(obj.storage_path)
-    if obj.local_path.exists():
+    if obj.is_cached and obj.local_path.exists():
         shutil.rmtree(obj.local_path)
 
 
@@ -83,7 +85,7 @@ StorageObject.delete_registry[(False, "dir")] = _delete_local_dir
 def _delete_remote_dir(obj: StorageObject):
     if obj.storage_path.exists():
         obj.storage_path.rmdir()
-    if obj.local_path.exists():
+    if obj.is_cached and obj.local_path.exists():
         shutil.rmtree(obj.local_path)
 
 
