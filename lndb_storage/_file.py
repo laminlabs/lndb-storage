@@ -60,7 +60,8 @@ def store_object(localpath: Union[str, Path], storagekey: str) -> float:
             # todo: make proper progress bar for zarr
             cb = fsspec.callbacks.NoOpCallback()
         storagepath.upload_from(localpath, recursive=True, callback=cb)
-    else:
+    else:  # storage path is local
+        storagepath.parent.mkdir(parents=True, exist_ok=True)
         if localpath.is_file():
             try:
                 shutil.copyfile(localpath, storagepath)
@@ -69,7 +70,6 @@ def store_object(localpath: Union[str, Path], storagekey: str) -> float:
         else:
             if storagepath.exists():
                 shutil.rmtree(storagepath)
-            storagepath.parent.mkdir(parents=True, exist_ok=True)
             shutil.copytree(localpath, storagepath)
     return float(size)  # because this is how we store in the db
 
