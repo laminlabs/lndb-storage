@@ -69,6 +69,7 @@ def store_object(localpath: Union[str, Path], storagekey: str) -> float:
         else:
             if storagepath.exists():
                 shutil.rmtree(storagepath)
+            storagepath.parent.mkdir(parents=True, exist_ok=True)
             shutil.copytree(localpath, storagepath)
     return float(size)  # because this is how we store in the db
 
