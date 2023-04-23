@@ -39,6 +39,7 @@ test = [
     "pytest>=6.0",
     "pytest-cov",
     "scanpy",
+    "pyarrow",
     "lndb>=0.41rc1",
 ]
 
