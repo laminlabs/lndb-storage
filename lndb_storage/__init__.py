@@ -17,7 +17,7 @@ Store files:
    delete_storage
 """
 
-__version__ = "0.2rc5"  # denote a release candidate for 0.1.0 with 0.1rc1
+__version__ = "0.2rc6"  # denote a release candidate for 0.1.0 with 0.1rc1
 
 from lndb.dev.upath import UPath
 from lndb.dev.upath import infer_filesystem as _infer_filesystem

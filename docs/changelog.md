@@ -3,8 +3,8 @@
 <!-- prettier-ignore -->
 Name | PR | Developer | Date | Version
 --- | --- | --- | --- | ---
-✨ Add `CloudAnnData` | [26](https://github.com/laminlabs/lndb-storage/pull/26) | [falexwolf](https://github.com/falexwolf) | 2023-04-24 |
-:memo: Drastically simplify streaming guide | [25](https://github.com/laminlabs/lndb-storage/pull/25) | [falexwolf](https://github.com/falexwolf) | 2023-04-24 |
+✨ Add `CloudAnnData` | [26](https://github.com/laminlabs/lndb-storage/pull/26) | [falexwolf](https://github.com/falexwolf) | 2023-04-24 | 0.2rc6
+📝 Drastically simplify streaming guide | [25](https://github.com/laminlabs/lndb-storage/pull/25) | [falexwolf](https://github.com/falexwolf) | 2023-04-24 |
 ✅ Add additional tests for replace | [24](https://github.com/laminlabs/lndb-storage/pull/24) | [Koncopd](https://github.com/Koncopd) | 2023-04-23 |
 ✅ Check add with key | [20](https://github.com/laminlabs/lndb-storage/pull/20) | [Koncopd](https://github.com/Koncopd) | 2023-04-16 | 0.2rc5
 ♻️ Refactoring | [19](https://github.com/laminlabs/lndb-storage/pull/19) | [Koncopd](https://github.com/Koncopd) | 2023-04-16 |
