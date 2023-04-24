@@ -1,6 +1,6 @@
 import nox
 import requests  # type: ignore
-from laminci import move_built_docs_to_docs_slash_project_slug, upload_docs_dir
+from laminci import move_built_docs_to_docs_slash_project_slug, upload_docs_artifact
 from laminci.nox import build_docs, login_testuser1, run_pre_commit, run_pytest
 
 nox.options.reuse_existing_virtualenvs = True
@@ -15,12 +15,12 @@ def lint(session: nox.Session) -> None:
 def build(session):
     login_testuser1(session)
     session.install(".[dev,test]")
-    response = requests.get("https://github.com/laminlabs/lamindb/tree/staging")
+    response = requests.get("https://github.com/laminlabs/lamindb/tree/refactor")
     if response.status_code < 400:
-        session.install("git+https://github.com/laminlabs/lamindb@staging")
+        session.install("git+https://github.com/laminlabs/lamindb@refactor")
     else:
         session.install("git+https://github.com/laminlabs/lamindb")
     run_pytest(session)
     build_docs(session)
-    upload_docs_dir()
+    upload_docs_artifact()
     move_built_docs_to_docs_slash_project_slug()
