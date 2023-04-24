@@ -104,11 +104,14 @@ def get_obs_var_storage(
     storage: Union[zarr.Group, h5py.File], which=Literal["obs", "var"]
 ) -> pd.DataFrame:
     with storage as access:
-        array = read_elem(access[which])
-    if "index" in array.dtype.fields:
-        return pd.DataFrame.from_records(array, index="index")
+        result = read_elem(access[which])
+    if isinstance(result, pd.DataFrame):
+        return result
+    # is array
+    elif "index" in result.dtype.fields:
+        return pd.DataFrame.from_records(result, index="index")
     else:
-        return pd.DataFrame.from_records(array)
+        return pd.DataFrame.from_records(result)
 
 
 class CloudAnnData:
