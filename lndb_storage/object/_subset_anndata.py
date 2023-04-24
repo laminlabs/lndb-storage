@@ -1,6 +1,8 @@
-from typing import Optional, Union
+from functools import cached_property
+from typing import Literal, Optional, Union
 
 import h5py
+import pandas as pd
 import zarr
 from anndata import AnnData
 from anndata._io.specs.methods import _read_partial
@@ -96,3 +98,43 @@ def _subset_anndata_file(
         adata = _subset_adata_storage(storage, query_obs, query_var)
 
     return adata
+
+
+def get_obs_var_storage(
+    storage: Union[zarr.Group, h5py.File], which=Literal["obs", "var"]
+) -> pd.DataFrame:
+    with storage as access:
+        result = read_elem(access[which])
+    if isinstance(result, pd.DataFrame):
+        return result
+    # is array
+    elif "index" in result.dtype.fields:
+        return pd.DataFrame.from_records(result, index="index")
+    else:
+        return pd.DataFrame.from_records(result)
+
+
+class CloudAnnData:
+    def __init__(self, file: File):
+        self._file = file
+
+    def _get_obs_var(self, which=Literal["obs", "var"]) -> pd.DataFrame:
+        file_path = filepath_from_file(self._file)
+        fs, file_path_str = _infer_filesystem(file_path)
+        if self._file.suffix == ".h5ad":
+            with fs.open(file_path_str, mode="rb") as f:
+                storage = h5py.File(f, mode="r")
+                df = get_obs_var_storage(storage, which)
+        elif self._file.suffix == ".zarr" or self._file.suffix == ".zrad":
+            mapper = fs.get_mapper(file_path_str, check=True)
+            storage = zarr.open(mapper, mode="r")
+            df = get_obs_var_storage(storage, which)
+        return df
+
+    @cached_property
+    def obs(self) -> pd.DataFrame:
+        return self._get_obs_var(which="obs")
+
+    @cached_property
+    def var(self) -> pd.DataFrame:
+        return self._get_obs_var(which="var")
