@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Literal, Optional, Union
 
 import h5py
@@ -103,8 +104,11 @@ def get_obs_var_storage(
     storage: Union[zarr.Group, h5py.File], which=Literal["obs", "var"]
 ) -> pd.DataFrame:
     with storage as access:
-        df = read_elem(access[which])
-    return df
+        array = read_elem(access[which])
+    if "index" in array.dtype.fields:
+        return pd.DataFrame.from_records(array, index="index")
+    else:
+        return pd.DataFrame.from_records(array)
 
 
 class CloudAnnData:
@@ -124,10 +128,10 @@ class CloudAnnData:
             df = get_obs_var_storage(storage, which)
         return df
 
-    @property
+    @cached_property
     def obs(self) -> pd.DataFrame:
         return self._get_obs_var(which="obs")
 
-    @property
+    @cached_property
     def var(self) -> pd.DataFrame:
         return self._get_obs_var(which="var")
