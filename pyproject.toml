@@ -41,6 +41,7 @@ test = [
     "scanpy",
     "pyarrow",
     "lndb>=0.41rc1",
+    "nbproject-test",
 ]
 
 [tool.black]
