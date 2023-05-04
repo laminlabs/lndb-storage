@@ -21,14 +21,24 @@ def _indices(base_indices, select_indices):
         return list(base_indices.get_indexer(select_indices))
 
 
+def _to_df(val):
+    if isinstance(val, pd.DataFrame):
+        return val
+    # is array
+    elif "index" in val.dtype.fields:
+        return pd.DataFrame.from_records(val, index="index")
+    else:
+        return pd.DataFrame.from_records(val)
+
+
 def _subset_adata_storage(
     storage: Union[zarr.Group, h5py.File],
     query_obs: Optional[Union[str, LazySelector]] = None,
     query_var: Optional[Union[str, LazySelector]] = None,
 ) -> Union[AnnData, None]:
     with storage as access:
-        obs = read_elem(access["obs"])
-        var = read_elem(access["var"])
+        obs = _to_df(read_elem(access["obs"]))
+        var = _to_df(read_elem(access["var"]))
 
         if query_obs is not None:
             if hasattr(query_obs, "evaluate"):
@@ -105,13 +115,7 @@ def get_obs_var_storage(
 ) -> pd.DataFrame:
     with storage as access:
         result = read_elem(access[which])
-    if isinstance(result, pd.DataFrame):
-        return result
-    # is array
-    elif "index" in result.dtype.fields:
-        return pd.DataFrame.from_records(result, index="index")
-    else:
-        return pd.DataFrame.from_records(result)
+    return _to_df(result)
 
 
 class CloudAnnData:
