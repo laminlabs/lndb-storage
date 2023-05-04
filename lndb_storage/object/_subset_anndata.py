@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Literal, Optional, Union
+from typing import Optional, Union
 
 import h5py
 import pandas as pd
@@ -110,35 +110,31 @@ def _subset_anndata_file(
     return adata
 
 
-def get_obs_var_storage(
-    storage: Union[zarr.Group, h5py.File], which=Literal["obs", "var"]
-) -> pd.DataFrame:
-    with storage as access:
-        result = read_elem(access[which])
-    return _to_df(result)
-
-
 class CloudAnnData:
     def __init__(self, file: File):
-        self._file = file
-
-    def _get_obs_var(self, which=Literal["obs", "var"]) -> pd.DataFrame:
-        file_path = filepath_from_file(self._file)
-        fs, file_path_str = _infer_filesystem(file_path)
-        if self._file.suffix == ".h5ad":
-            with fs.open(file_path_str, mode="rb") as f:
-                storage = h5py.File(f, mode="r")
-                df = get_obs_var_storage(storage, which)
-        elif self._file.suffix == ".zarr" or self._file.suffix == ".zrad":
+        fs, file_path_str = _infer_filesystem(filepath_from_file(file))
+        if file.suffix == ".h5ad":
+            self._conn = fs.open(file_path_str, mode="rb")
+            self.storage = h5py.File(self._conn, mode="r")
+        elif file.suffix in (".zarr", ".zrad"):
+            self._conn = None
             mapper = fs.get_mapper(file_path_str, check=True)
-            storage = zarr.open(mapper, mode="r")
-            df = get_obs_var_storage(storage, which)
-        return df
+            self.storage = zarr.open(mapper, mode="r")
+        else:
+            raise ValueError(
+                f"file should have .h5ad, .zarr or .zrad suffix, not {file.suffix}."
+            )
+
+    def __del__(self):
+        """Closes the connection."""
+        if self._conn is not None:
+            self.storage.close()
+            self._conn.close()
 
     @cached_property
     def obs(self) -> pd.DataFrame:
-        return self._get_obs_var(which="obs")
+        return _to_df(read_elem(self.storage["obs"]))
 
     @cached_property
     def var(self) -> pd.DataFrame:
-        return self._get_obs_var(which="var")
+        return _to_df(read_elem(self.storage["var"]))
