@@ -6,8 +6,8 @@ import pandas as pd
 import zarr
 from anndata._core.sparse_dataset import SparseDataset
 from anndata._io.h5ad import read_dataframe
-from anndata._io.spec.registry import get_spec
-from anndata._io.specs.registry import read_elem, read_elem_partial
+from anndata._io.specs.methods import read_indices
+from anndata._io.specs.registry import get_spec, read_elem, read_elem_partial
 from lndb.dev.upath import infer_filesystem as _infer_filesystem
 from lnschema_core import File
 from lnschema_core.dev._storage import filepath_from_file
@@ -125,6 +125,8 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
             raise ValueError(
                 f"file should have .h5ad, .zarr or .zrad suffix, not {file.suffix}."
             )
+
+        self._obs_names, self._var_names = read_indices(self.storage)
 
     def __del__(self):
         """Closes the connection."""
