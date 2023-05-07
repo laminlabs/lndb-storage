@@ -1,4 +1,5 @@
 from functools import cached_property
+from typing import Union
 
 import h5py
 import pandas as pd
@@ -42,7 +43,74 @@ class _MapAccessor:
         return self.elem.keys()
 
 
-class AnnDataAccessor:
+class _AnnDataAttrsMixin:
+    storage: Union[h5py.File, zarr.Group]
+
+    @cached_property
+    def obs(self) -> pd.DataFrame:
+        indices = getattr(self, "indices", None)
+        if indices is not None:
+            indices = (indices[0], slice(None))
+            return read_elem_partial(self.storage["obs"], indices=indices)
+        else:
+            return read_dataframe(self.storage["obs"])
+
+    @cached_property
+    def var(self) -> pd.DataFrame:
+        indices = getattr(self, "indices", None)
+        if indices is not None:
+            indices = (indices[1], slice(None))
+            return read_elem_partial(self.storage["obs"], indices=indices)
+        else:
+            return read_dataframe(self.storage["obs"])
+
+    @cached_property
+    def uns(self):
+        return read_elem(self.storage["uns"])
+
+    @cached_property
+    def X(self):
+        indices = getattr(self, "indices", None)
+        if indices is not None:
+            return read_elem_partial(self.storage["var"], indices=indices)
+        else:
+            return _try_backed_full(self.storage["X"])
+
+    @cached_property
+    def obsm(self):
+        indices = getattr(self, "indices", None)
+        if indices is not None:
+            indices = (indices[0], slice(None))
+        return _MapAccessor(self.storage["obsm"], indices)
+
+    @cached_property
+    def varm(self):
+        indices = getattr(self, "indices", None)
+        if indices is not None:
+            indices = (indices[1], slice(None))
+        return _MapAccessor(self.storage["obsm"], indices)
+
+    @cached_property
+    def obsp(self):
+        indices = getattr(self, "indices", None)
+        if indices is not None:
+            indices = (indices[0], indices[0])
+        return _MapAccessor(self.storage["obsp"], indices)
+
+    @cached_property
+    def varp(self):
+        indices = getattr(self, "indices", None)
+        if indices is not None:
+            indices = (indices[1], indices[1])
+        return _MapAccessor(self.storage["varp"], indices)
+
+    @cached_property
+    def layers(self):
+        indices = getattr(self, "indices", None)
+        return _MapAccessor(self.storage["layers"], indices)
+
+
+class AnnDataAccessor(_AnnDataAttrsMixin):
     def __init__(self, file: File):
         fs, file_path_str = _infer_filesystem(filepath_from_file(file))
 
@@ -63,31 +131,3 @@ class AnnDataAccessor:
         if self._conn is not None:
             self.storage.close()
             self._conn.close()
-
-    @cached_property
-    def obs(self) -> pd.DataFrame:
-        return read_dataframe(self.storage["obs"])
-
-    @cached_property
-    def var(self) -> pd.DataFrame:
-        return read_dataframe(self.storage["var"])
-
-    @cached_property
-    def uns(self):
-        return read_elem(self.storage["uns"])
-
-    @property
-    def X(self):
-        return _try_backed_full(self.storage["X"])
-
-    @property
-    def obsm(self):
-        return _MapAccessor(self.storage["obsm"])
-
-    @property
-    def varm(self):
-        return _MapAccessor(self.storage["varm"])
-
-    @property
-    def layers(self):
-        return _MapAccessor(self.storage["layers"])
