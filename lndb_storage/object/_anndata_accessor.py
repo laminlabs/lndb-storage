@@ -38,6 +38,9 @@ class _MapAccessor:
         else:
             return read_elem_partial(self.elem[key], indices=self.indices)
 
+    def keys(self):
+        return self.elem.keys()
+
 
 class AnnDataAccessor:
     def __init__(self, file: File):
