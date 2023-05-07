@@ -62,10 +62,6 @@ class AnnDataAccessor:
             self._conn.close()
 
     @cached_property
-    def X(self):
-        return _try_backed_full(self.storage["X"])
-
-    @cached_property
     def obs(self) -> pd.DataFrame:
         return read_dataframe(self.storage["obs"])
 
@@ -76,6 +72,10 @@ class AnnDataAccessor:
     @cached_property
     def uns(self):
         return read_elem(self.storage["uns"])
+
+    @property
+    def X(self):
+        return _try_backed_full(self.storage["X"])
 
     @property
     def obsm(self):
