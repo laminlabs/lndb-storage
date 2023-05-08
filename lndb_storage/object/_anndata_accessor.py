@@ -4,7 +4,9 @@ from typing import Union
 import h5py
 import pandas as pd
 import zarr
+from anndata._core.index import Index, _normalize_indices
 from anndata._core.sparse_dataset import SparseDataset
+from anndata._core.views import _resolve_idx
 from anndata._io.h5ad import read_dataframe
 from anndata._io.specs.methods import read_indices
 from anndata._io.specs.registry import get_spec, read_elem, read_elem_partial
@@ -15,7 +17,7 @@ from lnschema_core.dev._storage import filepath_from_file
 
 def _try_backed_full(elem):
     # think what to do for compatibility with old var and obs
-    if isinstance(elem, (h5py.Dataset, zarr.Dataset)):
+    if isinstance(elem, (h5py.Dataset, zarr.Array)):
         return elem
 
     if isinstance(elem, (h5py.Group, zarr.Group)):
@@ -72,7 +74,7 @@ class _AnnDataAttrsMixin:
     def X(self):
         indices = getattr(self, "indices", None)
         if indices is not None:
-            return read_elem_partial(self.storage["var"], indices=indices)
+            return read_elem_partial(self.storage["X"], indices=indices)
         else:
             return _try_backed_full(self.storage["X"])
 
@@ -109,6 +111,38 @@ class _AnnDataAttrsMixin:
         indices = getattr(self, "indices", None)
         return _MapAccessor(self.storage["layers"], indices)
 
+    @property
+    def obs_names(self):
+        return self._obs_names
+
+    @property
+    def var_names(self):
+        return self._var_names
+
+    @cached_property
+    def shape(self):
+        return len(self._obs_names), len(self._var_names)
+
+
+class AnnDataAccessorSubset(_AnnDataAttrsMixin):
+    def __init__(self, storage, indices, obs_names, var_names, ref_shape):
+        self.storage = storage
+        self.indices = indices
+
+        self._obs_names, self._var_names = obs_names, var_names
+
+        self._ref_shape = ref_shape
+
+    def __getitem__(self, index: Index):
+        """Access a subset of the underlying AnnData object."""
+        oidx, vidx = _normalize_indices(index, self._obs_names, self._var_names)
+        new_obs_names, new_var_names = self._obs_names[oidx], self._var_names[vidx]
+        oidx = _resolve_idx(self.indices[0], oidx, self._ref_shape[0])
+        vidx = _resolve_idx(self.indices[1], vidx, self._ref_shape[1])
+        return AnnDataAccessorSubset(
+            self.storage, (oidx, vidx), new_obs_names, new_var_names, self._ref_shape
+        )
+
 
 class AnnDataAccessor(_AnnDataAttrsMixin):
     def __init__(self, file: File):
@@ -133,3 +167,11 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
         if self._conn is not None:
             self.storage.close()
             self._conn.close()
+
+    def __getitem__(self, index: Index) -> AnnDataAccessorSubset:
+        """Access a subset of the underlying AnnData object."""
+        oidx, vidx = _normalize_indices(index, self._obs_names, self._var_names)
+        new_obs_names, new_var_names = self._obs_names[oidx], self._var_names[vidx]
+        return AnnDataAccessorSubset(
+            self.storage, (oidx, vidx), new_obs_names, new_var_names, self.shape
+        )
