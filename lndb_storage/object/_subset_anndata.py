@@ -3,14 +3,24 @@ from typing import Optional, Union
 import h5py
 import zarr
 from anndata import AnnData
-from anndata._io.h5ad import read_dataframe
+from anndata._io.h5ad import read_dataframe_legacy as read_dataframe_legacy_h5
 from anndata._io.specs.methods import _read_partial
 from anndata._io.specs.registry import read_elem, read_elem_partial
+from anndata._io.zarr import read_dataframe_legacy as read_dataframe_legacy_zarr
 from lndb.dev.upath import infer_filesystem as _infer_filesystem
 from lnschema_core import File
 from lnschema_core.dev._storage import filepath_from_file
 
 from ._lazy_field import LazySelector
+
+
+def _read_dataframe(elem: Union[zarr.Array, h5py.Dataset, zarr.Group, h5py.Group]):
+    if isinstance(elem, zarr.Array):
+        return read_dataframe_legacy_zarr(elem)
+    elif isinstance(elem, h5py.Dataset):
+        return read_dataframe_legacy_h5(elem)
+    else:
+        return read_elem(elem)
 
 
 def _indices(base_indices, select_indices):
@@ -26,8 +36,8 @@ def _subset_adata_storage(
     query_var: Optional[Union[str, LazySelector]] = None,
 ) -> Union[AnnData, None]:
     with storage as access:
-        obs = read_dataframe(access["obs"])
-        var = read_dataframe(access["var"])
+        obs = _read_dataframe(access["obs"])
+        var = _read_dataframe(access["var"])
 
         if query_obs is not None:
             if hasattr(query_obs, "evaluate"):

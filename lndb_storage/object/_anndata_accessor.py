@@ -7,12 +7,13 @@ import zarr
 from anndata._core.index import Index, _normalize_indices
 from anndata._core.sparse_dataset import SparseDataset
 from anndata._core.views import _resolve_idx
-from anndata._io.h5ad import read_dataframe
 from anndata._io.specs.methods import read_indices
 from anndata._io.specs.registry import get_spec, read_elem, read_elem_partial
 from lndb.dev.upath import infer_filesystem as _infer_filesystem
 from lnschema_core import File
 from lnschema_core.dev._storage import filepath_from_file
+
+from ._subset_anndata import _read_dataframe
 
 
 def _try_backed_full(elem):
@@ -55,7 +56,7 @@ class _AnnDataAttrsMixin:
             indices = (indices[0], slice(None))
             return read_elem_partial(self.storage["obs"], indices=indices)
         else:
-            return read_dataframe(self.storage["obs"])
+            return _read_dataframe(self.storage["obs"])
 
     @cached_property
     def var(self) -> pd.DataFrame:
@@ -64,7 +65,7 @@ class _AnnDataAttrsMixin:
             indices = (indices[1], slice(None))
             return read_elem_partial(self.storage["obs"], indices=indices)
         else:
-            return read_dataframe(self.storage["obs"])
+            return _read_dataframe(self.storage["obs"])
 
     @cached_property
     def uns(self):
@@ -160,6 +161,8 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
                 f"file should have .h5ad, .zarr or .zrad suffix, not {file.suffix}."
             )
 
+        self._name = file.name
+
         self._obs_names, self._var_names = read_indices(self.storage)
 
     def __del__(self):
@@ -175,3 +178,22 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
         return AnnDataAccessorSubset(
             self.storage, (oidx, vidx), new_obs_names, new_var_names, self.shape
         )
+
+    def __repr__(self):
+        """Description of the AnnDataAccessor object."""
+        n_obs, n_vars = self.shape
+        descr = f"AnnDataAccessor object with n_obs × n_vars = {n_obs} × {n_vars}"
+        descr += f"\n  constructed for the AnnData object {self._name}"
+        for attr in self.storage.keys():
+            if attr == "X":
+                continue
+            attr_obj = self.storage[attr]
+            if attr in ("obs", "var") and isinstance(
+                attr_obj, (h5py.Dataset, zarr.Array)
+            ):
+                keys = list(attr_obj.dtype.fields.keys())
+            else:
+                keys = list(attr_obj.keys())
+            if len(keys) > 0:
+                descr += f"\n    {attr}: {str(keys)}"
+        return descr
