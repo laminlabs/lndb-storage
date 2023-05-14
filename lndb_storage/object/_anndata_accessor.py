@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Union
+from typing import Mapping, Union
 
 import h5py
 import pandas as pd
@@ -9,6 +9,7 @@ from anndata._core.sparse_dataset import SparseDataset
 from anndata._core.views import _resolve_idx
 from anndata._io.specs.methods import read_indices
 from anndata._io.specs.registry import get_spec, read_elem, read_elem_partial
+from anndata.compat import _read_attr
 from lndb.dev.upath import infer_filesystem as _infer_filesystem
 from lnschema_core import File
 from lnschema_core.dev._storage import filepath_from_file
@@ -32,9 +33,10 @@ def _try_backed_full(elem):
 
 
 class _MapAccessor:
-    def __init__(self, elem, indices=None):
+    def __init__(self, elem, name, indices=None):
         self.elem = elem
         self.indices = indices
+        self.name = name
 
     def __getitem__(self, key):
         if self.indices is None:
@@ -48,9 +50,12 @@ class _MapAccessor:
 
 class _AnnDataAttrsMixin:
     storage: Union[h5py.File, zarr.Group]
+    _attrs_keys: Mapping[str, list]
 
     @cached_property
     def obs(self) -> pd.DataFrame:
+        if "obs" not in self._attrs_keys:
+            return None
         indices = getattr(self, "indices", None)
         if indices is not None:
             indices = (indices[0], slice(None))
@@ -60,15 +65,19 @@ class _AnnDataAttrsMixin:
 
     @cached_property
     def var(self) -> pd.DataFrame:
+        if "var" not in self._attrs_keys:
+            return None
         indices = getattr(self, "indices", None)
         if indices is not None:
             indices = (indices[1], slice(None))
-            return read_elem_partial(self.storage["obs"], indices=indices)
+            return read_elem_partial(self.storage["var"], indices=indices)
         else:
-            return _read_dataframe(self.storage["obs"])
+            return _read_dataframe(self.storage["var"])
 
     @cached_property
     def uns(self):
+        if "uns" not in self._attrs_keys:
+            return None
         return read_elem(self.storage["uns"])
 
     @cached_property
@@ -81,36 +90,46 @@ class _AnnDataAttrsMixin:
 
     @cached_property
     def obsm(self):
+        if "obsm" not in self._attrs_keys:
+            return None
         indices = getattr(self, "indices", None)
         if indices is not None:
             indices = (indices[0], slice(None))
-        return _MapAccessor(self.storage["obsm"], indices)
+        return _MapAccessor(self.storage["obsm"], "obsm", indices)
 
     @cached_property
     def varm(self):
+        if "varm" not in self._attrs_keys:
+            return None
         indices = getattr(self, "indices", None)
         if indices is not None:
             indices = (indices[1], slice(None))
-        return _MapAccessor(self.storage["obsm"], indices)
+        return _MapAccessor(self.storage["varm"], "varm", indices)
 
     @cached_property
     def obsp(self):
+        if "obsp" not in self._attrs_keys:
+            return None
         indices = getattr(self, "indices", None)
         if indices is not None:
             indices = (indices[0], indices[0])
-        return _MapAccessor(self.storage["obsp"], indices)
+        return _MapAccessor(self.storage["obsp"], "obsp", indices)
 
     @cached_property
     def varp(self):
+        if "varp" not in self._attrs_keys:
+            return None
         indices = getattr(self, "indices", None)
         if indices is not None:
             indices = (indices[1], indices[1])
-        return _MapAccessor(self.storage["varp"], indices)
+        return _MapAccessor(self.storage["varp"], "varp", indices)
 
     @cached_property
     def layers(self):
+        if "layers" not in self._attrs_keys:
+            return None
         indices = getattr(self, "indices", None)
-        return _MapAccessor(self.storage["layers"], indices)
+        return _MapAccessor(self.storage["layers"], "layers", indices)
 
     @property
     def obs_names(self):
@@ -126,10 +145,11 @@ class _AnnDataAttrsMixin:
 
 
 class AnnDataAccessorSubset(_AnnDataAttrsMixin):
-    def __init__(self, storage, indices, obs_names, var_names, ref_shape):
+    def __init__(self, storage, indices, attrs_keys, obs_names, var_names, ref_shape):
         self.storage = storage
         self.indices = indices
 
+        self._attrs_keys = attrs_keys
         self._obs_names, self._var_names = obs_names, var_names
 
         self._ref_shape = ref_shape
@@ -138,11 +158,69 @@ class AnnDataAccessorSubset(_AnnDataAttrsMixin):
         """Access a subset of the underlying AnnData object."""
         oidx, vidx = _normalize_indices(index, self._obs_names, self._var_names)
         new_obs_names, new_var_names = self._obs_names[oidx], self._var_names[vidx]
-        oidx = _resolve_idx(self.indices[0], oidx, self._ref_shape[0])
-        vidx = _resolve_idx(self.indices[1], vidx, self._ref_shape[1])
-        return AnnDataAccessorSubset(
-            self.storage, (oidx, vidx), new_obs_names, new_var_names, self._ref_shape
+        if self.indices is not None:
+            oidx = _resolve_idx(self.indices[0], oidx, self._ref_shape[0])
+            vidx = _resolve_idx(self.indices[1], vidx, self._ref_shape[1])
+        return type(self)(
+            self.storage,
+            (oidx, vidx),
+            self._attrs_keys,
+            new_obs_names,
+            new_var_names,
+            self._ref_shape,
         )
+
+    @cached_property
+    def raw(self):
+        if "raw" not in self._attrs_keys:
+            return None
+        prepare_indices = None
+        if self.indices is not None:
+            oidx = self.indices[0]
+            if oidx != slice(None):
+                prepare_indices = oidx, slice(None)
+        return AnnDataRawAccessor(
+            self.storage["raw"],
+            prepare_indices,
+            None,
+            self._obs_names,
+            None,
+            self._ref_shape[0],
+        )
+
+
+class AnnDataRawAccessor(AnnDataAccessorSubset):
+    def __init__(
+        self, storage_raw, indices, attrs_keys, obs_names, var_names, ref_shape
+    ):
+        var_raw = storage_raw["var"]
+
+        if var_names is None:
+            var_names = read_elem(var_raw[_read_attr(var_raw.attrs, "_index")])
+
+        if isinstance(ref_shape, int):
+            ref_shape = ref_shape, len(var_names)
+        elif isinstance(ref_shape, tuple) and len(ref_shape) < 2:
+            ref_shape = ref_shape[0], len(var_names)
+
+        if attrs_keys is None:
+            attrs_keys = {}
+            if isinstance(var_raw, (h5py.Dataset, zarr.Array)):
+                attrs_keys["var"] = list(var_raw.dtype.fields.keys())
+            else:
+                attrs_keys["var"] = list(var_raw.keys())
+            if "varm" in storage_raw:
+                varm_keys_raw = list(storage_raw["varm"].keys())
+                if len(varm_keys_raw) > 0:
+                    attrs_keys["varm"] = varm_keys_raw
+
+        super().__init__(
+            storage_raw, indices, attrs_keys, obs_names, var_names, ref_shape
+        )
+
+    @property
+    def raw(self):
+        raise AttributeError
 
 
 class AnnDataAccessor(_AnnDataAttrsMixin):
@@ -165,25 +243,7 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
 
         self._obs_names, self._var_names = read_indices(self.storage)
 
-    def __del__(self):
-        """Closes the connection."""
-        if self._conn is not None:
-            self.storage.close()
-            self._conn.close()
-
-    def __getitem__(self, index: Index) -> AnnDataAccessorSubset:
-        """Access a subset of the underlying AnnData object."""
-        oidx, vidx = _normalize_indices(index, self._obs_names, self._var_names)
-        new_obs_names, new_var_names = self._obs_names[oidx], self._var_names[vidx]
-        return AnnDataAccessorSubset(
-            self.storage, (oidx, vidx), new_obs_names, new_var_names, self.shape
-        )
-
-    def __repr__(self):
-        """Description of the AnnDataAccessor object."""
-        n_obs, n_vars = self.shape
-        descr = f"AnnDataAccessor object with n_obs × n_vars = {n_obs} × {n_vars}"
-        descr += f"\n  constructed for the AnnData object {self._name}"
+        self._attrs_keys = {}
         for attr in self.storage.keys():
             if attr == "X":
                 continue
@@ -195,5 +255,40 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
             else:
                 keys = list(attr_obj.keys())
             if len(keys) > 0:
-                descr += f"\n    {attr}: {str(keys)}"
+                self._attrs_keys[attr] = keys
+
+    def __del__(self):
+        """Closes the connection."""
+        if self._conn is not None:
+            self.storage.close()
+            self._conn.close()
+
+    def __getitem__(self, index: Index) -> AnnDataAccessorSubset:
+        """Access a subset of the underlying AnnData object."""
+        oidx, vidx = _normalize_indices(index, self._obs_names, self._var_names)
+        new_obs_names, new_var_names = self._obs_names[oidx], self._var_names[vidx]
+        return AnnDataAccessorSubset(
+            self.storage,
+            (oidx, vidx),
+            self._attrs_keys,
+            new_obs_names,
+            new_var_names,
+            self.shape,
+        )
+
+    def __repr__(self):
+        """Description of the AnnDataAccessor object."""
+        n_obs, n_vars = self.shape
+        descr = f"AnnDataAccessor object with n_obs × n_vars = {n_obs} × {n_vars}"
+        descr += f"\n  constructed for the AnnData object {self._name}"
+        for attr, keys in self._attrs_keys.items():
+            descr += f"\n    {attr}: {str(keys)}"
         return descr
+
+    @cached_property
+    def raw(self):
+        if "raw" not in self._attrs_keys:
+            return None
+        return AnnDataRawAccessor(
+            self.storage["raw"], None, None, self._obs_names, None, self.shape[0]
+        )
