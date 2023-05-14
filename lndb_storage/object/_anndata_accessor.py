@@ -45,7 +45,13 @@ class _MapAccessor:
             return read_elem_partial(self.elem[key], indices=self.indices)
 
     def keys(self):
-        return self.elem.keys()
+        return list(self.elem.keys())
+
+    def __repr__(self):
+        """Description of the _MapAccessor object."""
+        descr = f"Accessor for the AnnData attribute {self.name}"
+        descr += f"\n  with keys: {self.keys()}"
+        return descr
 
 
 class _AnnDataAttrsMixin:
@@ -170,6 +176,14 @@ class AnnDataAccessorSubset(_AnnDataAttrsMixin):
             self._ref_shape,
         )
 
+    def __repr__(self):
+        """Description of the object."""
+        n_obs, n_vars = self.shape
+        descr = f"{type(self).__name__} object with n_obs × n_vars = {n_obs} × {n_vars}"
+        for attr, keys in self._attrs_keys.items():
+            descr += f"\n  {attr}: {keys}"
+        return descr
+
     @cached_property
     def raw(self):
         if "raw" not in self._attrs_keys:
@@ -282,7 +296,7 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
         descr = f"AnnDataAccessor object with n_obs × n_vars = {n_obs} × {n_vars}"
         descr += f"\n  constructed for the AnnData object {self._name}"
         for attr, keys in self._attrs_keys.items():
-            descr += f"\n    {attr}: {str(keys)}"
+            descr += f"\n    {attr}: {keys}"
         return descr
 
     @cached_property
