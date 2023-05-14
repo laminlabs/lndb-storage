@@ -243,7 +243,11 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
 
         if file.suffix == ".h5ad":
             self._conn = fs.open(file_path_str, mode="rb")
-            self.storage = h5py.File(self._conn, mode="r")
+            try:
+                self.storage = h5py.File(self._conn, mode="r")
+            except Exception as e:
+                self._conn.close()
+                raise e
         elif file.suffix in (".zarr", ".zrad"):
             self._conn = None
             mapper = fs.get_mapper(file_path_str, check=True)
