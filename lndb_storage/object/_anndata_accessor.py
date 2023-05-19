@@ -222,9 +222,9 @@ class AnnDataRawAccessor(AnnDataAccessorSubset):
             if isinstance(var_raw, (h5py.Dataset, zarr.Array)):
                 attrs_keys["var"] = list(var_raw.dtype.fields.keys())
             else:
-                attrs_keys["var"] = list(var_raw.keys())
+                attrs_keys["var"] = [key for key in var_raw]
             if "varm" in storage_raw:
-                varm_keys_raw = list(storage_raw["varm"].keys())
+                varm_keys_raw = [key for key in storage_raw["varm"]]
                 if len(varm_keys_raw) > 0:
                     attrs_keys["varm"] = varm_keys_raw
 
@@ -271,7 +271,9 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
             ):
                 keys = list(attr_obj.dtype.fields.keys())
             else:
-                keys = list(attr_obj.keys())
+                # for some reason list(attr_obj.keys()) is very slow for zarr
+                # maybe directly get keys from the underlying mapper
+                keys = [key for key in attr_obj]
             if len(keys) > 0:
                 self._attrs_keys[attr] = keys
 
