@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Mapping, Union
+from typing import Dict, Mapping, Union
 
 import h5py
 import pandas as pd
@@ -222,6 +222,8 @@ class AnnDataRawAccessor(AnnDataAccessorSubset):
             if isinstance(var_raw, (h5py.Dataset, zarr.Array)):
                 attrs_keys["var"] = list(var_raw.dtype.fields.keys())
             else:
+                # for some reason list(var_raw.keys()) is very slow for zarr
+                # maybe also directly get keys from the underlying mapper
                 attrs_keys["var"] = [key for key in var_raw]
             if "varm" in storage_raw:
                 varm_keys_raw = [key for key in storage_raw["varm"]]
@@ -248,10 +250,12 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
             except Exception as e:
                 self._conn.close()
                 raise e
+            self._attrs_keys = _keys_h5(self.storage)
         elif file.suffix in (".zarr", ".zrad"):
             self._conn = None
             mapper = fs.get_mapper(file_path_str, check=True)
             self.storage = zarr.open(mapper, mode="r")
+            self._attrs_keys = _keys_zarr(self.storage)
         else:
             raise ValueError(
                 f"file should have .h5ad, .zarr or .zrad suffix, not {file.suffix}."
@@ -260,22 +264,6 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
         self._name = file.name
 
         self._obs_names, self._var_names = read_indices(self.storage)
-
-        self._attrs_keys = {}
-        for attr in self.storage.keys():
-            if attr == "X":
-                continue
-            attr_obj = self.storage[attr]
-            if attr in ("obs", "var") and isinstance(
-                attr_obj, (h5py.Dataset, zarr.Array)
-            ):
-                keys = list(attr_obj.dtype.fields.keys())
-            else:
-                # for some reason list(attr_obj.keys()) is very slow for zarr
-                # maybe directly get keys from the underlying mapper
-                keys = [key for key in attr_obj]
-            if len(keys) > 0:
-                self._attrs_keys[attr] = keys
 
     def __del__(self):
         """Closes the connection."""
@@ -312,3 +300,59 @@ class AnnDataAccessor(_AnnDataAttrsMixin):
         return AnnDataRawAccessor(
             self.storage["raw"], None, None, self._obs_names, None, self.shape[0]
         )
+
+
+# this is needed because accessing zarr.Group.keys() directly is very slow
+def _keys_zarr(storage: zarr.Group):
+    paths = storage._store.keys()
+
+    attrs_keys: Dict[str, list] = {}
+    obs_var_arrays = []
+
+    for path in paths:
+        if path in (".zattrs", ".zgroup"):
+            continue
+        parts = path.split("/")
+        if len(parts) < 2:
+            continue
+        attr = parts[0]
+        key = parts[1]
+
+        if attr == "X":
+            continue
+
+        if attr in ("obs", "var"):
+            if attr in obs_var_arrays:
+                continue
+            if key == ".zarray":
+                attrs_keys.pop(attr, None)
+                obs_var_arrays.append(attr)
+
+        if attr not in attrs_keys:
+            attrs_keys[attr] = []
+
+        if key in (".zattrs", ".zgroup", ".zarray"):
+            continue
+        attr_keys = attrs_keys[attr]
+        if key not in attr_keys:
+            attr_keys.append(key)
+
+    for attr in obs_var_arrays:
+        attrs_keys[attr] = list(storage[attr].dtype.fields.keys())
+
+    return {attr: keys for attr, keys in attrs_keys.items() if len(keys) > 0}
+
+
+def _keys_h5(storage: h5py.File):
+    attrs_keys: Dict[str, list] = {}
+    for attr in storage.keys():
+        if attr == "X":
+            continue
+        attr_obj = storage[attr]
+        if attr in ("obs", "var") and isinstance(attr_obj, h5py.Dataset):
+            keys = list(attr_obj.dtype.fields.keys())
+        else:
+            keys = list(attr_obj.keys())
+        if len(keys) > 0:
+            attrs_keys[attr] = keys
+    return attrs_keys
