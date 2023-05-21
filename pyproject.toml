@@ -16,11 +16,9 @@ dependencies = [
     "python-dateutil",
     "zarr",
     "anndata>=0.9.1",
-    "boto3==1.24.59", # for aiobotocore inside s3fs, to fix deps resolution
-    "botocore==1.27.59", # for aiobotocore inside s3fs, to fix deps resolution
-    "fsspec==2023.1.0",
-    "s3fs==2023.1.0",
-    "gcsfs==2023.1.0",
+    "boto3==1.26.76", # for aiobotocore inside s3fs, to fix deps resolution
+    "botocore==1.29.76", # for aiobotocore inside s3fs, to fix deps resolution
+    "fsspec[s3,gs]==2023.5.0",
     "universal_pathlib",
     "scipy",
     "pandas",
