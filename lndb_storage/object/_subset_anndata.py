@@ -9,7 +9,7 @@ from anndata._io.specs.methods import _read_partial
 from anndata._io.specs.registry import read_elem, read_elem_partial
 from lndb.dev.upath import infer_filesystem as _infer_filesystem
 from lnschema_core import File
-from lnschema_core.dev._storage import filepath_from_file
+from lnschema_core._core import filepath_from_file_or_folder
 
 from ._lazy_field import LazySelector
 
@@ -93,7 +93,7 @@ def _subset_anndata_file(
     query_obs: Optional[Union[str, LazySelector]] = None,
     query_var: Optional[Union[str, LazySelector]] = None,
 ) -> Union[AnnData, None]:
-    file_path = filepath_from_file(file)
+    file_path = filepath_from_file_or_folder(file)
     fs, file_path_str = _infer_filesystem(file_path)
 
     adata: Union[AnnData, None] = None
@@ -112,7 +112,7 @@ def _subset_anndata_file(
 
 class CloudAnnData:
     def __init__(self, file: File):
-        fs, file_path_str = _infer_filesystem(filepath_from_file(file))
+        fs, file_path_str = _infer_filesystem(filepath_from_file_or_folder(file))
         if file.suffix == ".h5ad":
             self._conn = fs.open(file_path_str, mode="rb")
             self.storage = h5py.File(self._conn, mode="r")
