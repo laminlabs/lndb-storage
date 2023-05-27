@@ -1,17 +1,26 @@
-from functools import cached_property
 from typing import Optional, Union
 
 import h5py
-import pandas as pd
 import zarr
 from anndata import AnnData
+from anndata._io.h5ad import read_dataframe_legacy as read_dataframe_legacy_h5
 from anndata._io.specs.methods import _read_partial
 from anndata._io.specs.registry import read_elem, read_elem_partial
+from anndata._io.zarr import read_dataframe_legacy as read_dataframe_legacy_zarr
 from lndb.dev.upath import infer_filesystem as _infer_filesystem
 from lnschema_core import File
 from lnschema_core._core import filepath_from_file_or_folder
 
 from ._lazy_field import LazySelector
+
+
+def _read_dataframe(elem: Union[zarr.Array, h5py.Dataset, zarr.Group, h5py.Group]):
+    if isinstance(elem, zarr.Array):
+        return read_dataframe_legacy_zarr(elem)
+    elif isinstance(elem, h5py.Dataset):
+        return read_dataframe_legacy_h5(elem)
+    else:
+        return read_elem(elem)
 
 
 def _indices(base_indices, select_indices):
@@ -21,24 +30,14 @@ def _indices(base_indices, select_indices):
         return list(base_indices.get_indexer(select_indices))
 
 
-def _to_df(val):
-    if isinstance(val, pd.DataFrame):
-        return val
-    # is array
-    elif "index" in val.dtype.fields:
-        return pd.DataFrame.from_records(val, index="index")
-    else:
-        return pd.DataFrame.from_records(val)
-
-
 def _subset_adata_storage(
     storage: Union[zarr.Group, h5py.File],
     query_obs: Optional[Union[str, LazySelector]] = None,
     query_var: Optional[Union[str, LazySelector]] = None,
 ) -> Union[AnnData, None]:
     with storage as access:
-        obs = _to_df(read_elem(access["obs"]))
-        var = _to_df(read_elem(access["var"]))
+        obs = _read_dataframe(access["obs"])
+        var = _read_dataframe(access["var"])
 
         if query_obs is not None:
             if hasattr(query_obs, "evaluate"):
@@ -108,33 +107,3 @@ def _subset_anndata_file(
         adata = _subset_adata_storage(storage, query_obs, query_var)
 
     return adata
-
-
-class CloudAnnData:
-    def __init__(self, file: File):
-        fs, file_path_str = _infer_filesystem(filepath_from_file_or_folder(file))
-        if file.suffix == ".h5ad":
-            self._conn = fs.open(file_path_str, mode="rb")
-            self.storage = h5py.File(self._conn, mode="r")
-        elif file.suffix in (".zarr", ".zrad"):
-            self._conn = None
-            mapper = fs.get_mapper(file_path_str, check=True)
-            self.storage = zarr.open(mapper, mode="r")
-        else:
-            raise ValueError(
-                f"file should have .h5ad, .zarr or .zrad suffix, not {file.suffix}."
-            )
-
-    def __del__(self):
-        """Closes the connection."""
-        if self._conn is not None:
-            self.storage.close()
-            self._conn.close()
-
-    @cached_property
-    def obs(self) -> pd.DataFrame:
-        return _to_df(read_elem(self.storage["obs"]))
-
-    @cached_property
-    def var(self) -> pd.DataFrame:
-        return _to_df(read_elem(self.storage["var"]))
