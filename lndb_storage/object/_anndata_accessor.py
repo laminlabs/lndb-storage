@@ -12,7 +12,7 @@ from anndata._io.specs.registry import get_spec, read_elem, read_elem_partial
 from anndata.compat import _read_attr
 from lndb.dev.upath import infer_filesystem as _infer_filesystem
 from lnschema_core import File
-from lnschema_core.dev._storage import filepath_from_file
+from lnschema_core._core import filepath_from_file_or_folder
 
 from ._subset_anndata import _read_dataframe
 
@@ -241,7 +241,7 @@ class AnnDataRawAccessor(AnnDataAccessorSubset):
 
 class AnnDataAccessor(_AnnDataAttrsMixin):
     def __init__(self, file: File):
-        fs, file_path_str = _infer_filesystem(filepath_from_file(file))
+        fs, file_path_str = _infer_filesystem(filepath_from_file_or_folder(file))
 
         if file.suffix == ".h5ad":
             self._conn = fs.open(file_path_str, mode="rb")
