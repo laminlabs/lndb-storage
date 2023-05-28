@@ -9,7 +9,7 @@ readme = "README.md"
 dynamic = ["version", "description"]
 dependencies = [
     "lnschema_core",
-    "lndb>=0.45a3",
+    "lndb>=0.45a4",
     "lamin_logger>=0.3.0",
     "nbproject",
     "readfcs",
@@ -27,12 +27,11 @@ dependencies = [
 Home = "https://github.com/laminlabs/lndb-storage"
 
 [project.optional-dependencies]
-s3 = [
-    "boto3==1.26.76", # for aiobotocore inside s3fs, to fix deps resolution
+aws = [
     "botocore==1.29.76", # for aiobotocore inside s3fs, to fix deps resolution
     "fsspec[s3]==2023.5.0"
 ]
-gs = [
+gcp = [
     "fsspec[gs]==2023.5.0"
 ]
 dev = [
@@ -44,9 +43,9 @@ test = [
     "pytest-cov",
     "scanpy",
     "pyarrow",
-    "lndb>=0.45a3",
+    "lndb>=0.45a4",
     "nbproject-test",
-    "lndb_storage[s3,gs]"
+    "lndb_storage[aws,gcp]"
 ]
 
 [tool.black]
