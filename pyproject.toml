@@ -9,7 +9,7 @@ readme = "README.md"
 dynamic = ["version", "description"]
 dependencies = [
     "lnschema_core",
-    "lndb>=0.41.0",
+    "lndb>=0.45a3",
     "lamin_logger>=0.3.0",
     "nbproject",
     "readfcs",
@@ -44,7 +44,7 @@ test = [
     "pytest-cov",
     "scanpy",
     "pyarrow",
-    "lndb>=0.41rc1",
+    "lndb>=0.45a3",
     "nbproject-test",
     "lndb_storage[s3,gs]"
 ]
