@@ -3,6 +3,7 @@
 <!-- prettier-ignore -->
 Name | PR | Developer | Date | Version
 --- | --- | --- | --- | ---
+:memo: Add content from lamindb | [36](https://github.com/laminlabs/lndb-storage/pull/36) | [falexwolf](https://github.com/falexwolf) | 2023-05-28 |
 ✨ `AnnDataAccessor` for access to cloud AnnData attributes | [32](https://github.com/laminlabs/lndb-storage/pull/32) | [Koncopd](https://github.com/Koncopd) | 2023-05-27 | 0.3.1
 ✅ Use nbproject-test directly in test_notebooks.py | [31](https://github.com/laminlabs/lndb-storage/pull/31) | [Koncopd](https://github.com/Koncopd) | 2023-05-04 | 0.3.0
 ♻️ Refactor CloudAnnData | [29](https://github.com/laminlabs/lndb-storage/pull/29) | [Koncopd](https://github.com/Koncopd) | 2023-05-04 |
