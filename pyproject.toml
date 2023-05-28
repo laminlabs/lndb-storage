@@ -16,11 +16,7 @@ dependencies = [
     "python-dateutil",
     "zarr",
     "anndata>=0.9.1",
-    "boto3==1.24.59", # for aiobotocore inside s3fs, to fix deps resolution
-    "botocore==1.27.59", # for aiobotocore inside s3fs, to fix deps resolution
-    "fsspec==2023.1.0",
-    "s3fs==2023.1.0",
-    "gcsfs==2023.1.0",
+    "fsspec",
     "universal_pathlib",
     "scipy",
     "pandas",
@@ -31,6 +27,14 @@ dependencies = [
 Home = "https://github.com/laminlabs/lndb-storage"
 
 [project.optional-dependencies]
+s3 = [
+    "boto3==1.26.76", # for aiobotocore inside s3fs, to fix deps resolution
+    "botocore==1.29.76", # for aiobotocore inside s3fs, to fix deps resolution
+    "fsspec[s3]==2023.5.0"
+]
+gs = [
+    "fsspec[gs]==2023.5.0"
+]
 dev = [
     "pre-commit",
     "nox",
@@ -42,6 +46,7 @@ test = [
     "pyarrow",
     "lndb>=0.41rc1",
     "nbproject-test",
+    "lndb_storage[s3,gs]"
 ]
 
 [tool.black]
