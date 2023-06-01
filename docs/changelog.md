@@ -3,7 +3,7 @@
 <!-- prettier-ignore -->
 Name | PR | Developer | Date | Version
 --- | --- | --- | --- | ---
-:truck: Rename lndb to lamindb-storage | [40](https://github.com/laminlabs/lndb-storage/pull/40) | [falexwolf](https://github.com/falexwolf) | 2023-06-01 |
+:truck: Rename lndb to lamindb-storage | [40](https://github.com/laminlabs/lndb-storage/pull/40) | [falexwolf](https://github.com/falexwolf) | 2023-06-01 | 0.4a1
 ➖ Update fsspec and move s3 and gs dependencies to extras  | [38](https://github.com/laminlabs/lndb-storage/pull/38) | [Koncopd](https://github.com/Koncopd) | 2023-05-28 | 0.3.2
 :memo: Add content from lamindb | [36](https://github.com/laminlabs/lndb-storage/pull/36) | [falexwolf](https://github.com/falexwolf) | 2023-05-28 |
 ✨ `AnnDataAccessor` for access to cloud AnnData attributes | [32](https://github.com/laminlabs/lndb-storage/pull/32) | [Koncopd](https://github.com/Koncopd) | 2023-05-27 | 0.3.1

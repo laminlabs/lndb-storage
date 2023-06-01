@@ -17,7 +17,7 @@ Store files:
    delete_storage
 """
 
-__version__ = "0.3.2"  # denote a release candidate for 0.1.0 with 0.1rc1
+__version__ = "0.4a1"  # denote a release candidate for 0.1.0 with 0.1rc1
 
 from lamindb_setup.dev.upath import UPath
 from lamindb_setup.dev.upath import infer_filesystem as _infer_filesystem
