@@ -10,7 +10,7 @@ from anndata._core.views import _resolve_idx
 from anndata._io.specs.methods import read_indices
 from anndata._io.specs.registry import get_spec, read_elem, read_elem_partial
 from anndata.compat import _read_attr
-from lndb.dev.upath import infer_filesystem as _infer_filesystem
+from lamindb_setup.dev.upath import infer_filesystem as _infer_filesystem
 from lnschema_core import File
 from lnschema_core._core import filepath_from_file_or_folder
 

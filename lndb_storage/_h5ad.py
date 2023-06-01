@@ -1,7 +1,7 @@
 import anndata
 from anndata import AnnData
-from lndb import settings
-from lndb.dev.upath import infer_filesystem
+from lamindb_setup import settings
+from lamindb_setup.dev.upath import infer_filesystem
 
 
 def h5ad_to_anndata(filekey) -> AnnData:

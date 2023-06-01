@@ -3,7 +3,7 @@ from pathlib import Path
 
 from anndata import AnnData
 from lamin_logger import logger
-from lndb import settings
+from lamindb_setup import settings
 from typeguard import typechecked
 
 

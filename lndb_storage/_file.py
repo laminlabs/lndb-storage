@@ -6,8 +6,8 @@ from typing import Union
 import fsspec
 import pandas as pd
 import readfcs
-from lndb import settings
-from lndb.dev.upath import UPath
+from lamindb_setup import settings
+from lamindb_setup.dev.upath import UPath
 
 from ._h5ad import read_adata_h5ad
 from ._zarr import read_adata_zarr
