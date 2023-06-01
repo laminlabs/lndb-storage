@@ -19,8 +19,8 @@ Store files:
 
 __version__ = "0.3.2"  # denote a release candidate for 0.1.0 with 0.1rc1
 
-from lndb.dev.upath import UPath
-from lndb.dev.upath import infer_filesystem as _infer_filesystem
+from lamindb_setup.dev.upath import UPath
+from lamindb_setup.dev.upath import infer_filesystem as _infer_filesystem
 
 from ._file import delete_storage, load_to_memory, store_object
 from ._h5ad import h5ad_to_anndata

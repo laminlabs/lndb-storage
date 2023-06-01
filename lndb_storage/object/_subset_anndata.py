@@ -7,7 +7,7 @@ from anndata._io.h5ad import read_dataframe_legacy as read_dataframe_legacy_h5
 from anndata._io.specs.methods import _read_partial
 from anndata._io.specs.registry import read_elem, read_elem_partial
 from anndata._io.zarr import read_dataframe_legacy as read_dataframe_legacy_zarr
-from lndb.dev.upath import infer_filesystem as _infer_filesystem
+from lamindb_setup.dev.upath import infer_filesystem as _infer_filesystem
 from lnschema_core import File
 from lnschema_core._core import filepath_from_file_or_folder
 

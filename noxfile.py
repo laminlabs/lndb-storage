@@ -15,9 +15,9 @@ def lint(session: nox.Session) -> None:
 def build(session):
     login_testuser1(session)
     session.install(".[dev,test]")
-    response = requests.get("https://github.com/laminlabs/lamindb/tree/adata_access")
+    response = requests.get("https://github.com/laminlabs/lamindb/tree/rename")
     if response.status_code < 400:
-        session.install("git+https://github.com/laminlabs/lamindb@adata_access")
+        session.install("git+https://github.com/laminlabs/lamindb@rename")
     else:
         session.install("git+https://github.com/laminlabs/lamindb")
     run_pytest(session)
